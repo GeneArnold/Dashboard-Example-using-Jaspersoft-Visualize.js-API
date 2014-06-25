@@ -16,6 +16,9 @@
 .icon-cut{
 	background:url('icons/cut.png') no-repeat center center;
 }
+.icon-pdf{
+	background:url('icons/pdficon_small.png') no-repeat center center;
+}
 .icon-ok{
 	background:url('icons/ok.png') no-repeat center center;
 }

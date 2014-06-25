@@ -152,7 +152,17 @@
 					height:450,
 					closable:false,
 					collapsible:true,
-					noheader:false
+					noheader:false,
+					tools:[{
+				        iconCls:'icon-pdf',
+				        handler:function(){exportReport(btnId);}
+				    },{
+				        iconCls:'icon-reload',
+				        handler:function(){refreshReport(btnId);}
+				    },{
+				    	iconCls:'icon-filter',
+				        handler:function(){$('#dlg').dialog('open');}
+				    }]
 				});
 
 				$('#pp').portal('add', {
@@ -175,8 +185,43 @@
 			}
 		}
 
+		function refreshReport(id){
+			$.each(reportsList,
+				function(index,value){
+					if(value.container() == ("#report_"+id)){
+							value.refresh();
+					}
+				}
+			);		
+		}
+
+		function exportReport(id){
+			$.each(reportsList,
+				function(index,value){
+					if(value.container() == ("#report_"+id)){
+						value
+						.export({
+							outputFormat: "pdf"
+						})
+						.done(function (link) {
+							window.open(link.href); // open new window to download report
+						})
+						.fail(function (err) {
+							alert(err.message);
+						});
+					}
+				}
+			);		
+		}
+
+
+
 		//Used to remove report panels from the dashboard
 		function removeReport(id){
+
+			reportsList = jQuery.grep(reportsList, function( report, i ) {
+			  return ( report.container() !== ("#report_"+id) );
+			});
 
 			$('#pp').portal('remove',$('#pannel_'+id));
 
@@ -187,15 +232,17 @@
 			colIndex = 0;
 		}
 
+		var reportsList = new Array();
 		//When a pannel is added to the dashboard this function is called to use visualize.js to create the report within that pannel
 		function renderReport(uri,container,v) {
-	        v.report({
+	        var report = new v.report({
 	        resource: uri,
 	        container: container,
 	        error: function(err) {
 	                alert(err.message);
 	            }
 	        });
+	        reportsList.push(report);
 		}
 	
 	</script>
@@ -214,5 +261,8 @@
 		</div>
     </div>
 
+    <div id="dlg" class="easyui-dialog" title="Basic Dialog" data-options="iconCls:'icon-save',closed:true" style="width:400px;height:200px;padding:10px">
+        The dialog content.
+    </div>
 </body>
 </html>
