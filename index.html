@@ -57,6 +57,7 @@
 			font-family: sans-serif;
 		}
 		
+		
 	</style>
 
 	<script type="text/javascript" src="scripts/jquery.min.js"></script>
@@ -161,7 +162,18 @@
 				        handler:function(){refreshReport(btnId);}
 				    },{
 				    	iconCls:'icon-filter',
-				        handler:function(){$('#dlg').dialog('open');}
+				        handler:function(){
+				        	$('#inputControls').html('');
+				        	$('#sendButtonBox').hide();
+				        	$('#dlg').attr('reportId',btnId);
+				        	$('#dlg').dialog('open');
+				        	var ic = JRSClient.inputControls({
+										resource: reportURI,
+										success: function(controls) {
+										controls.forEach(buildControl);
+									}
+								});
+				        }
 				    }]
 				});
 
@@ -183,6 +195,41 @@
 				removeReport(btnId);
 				
 			}
+		}
+
+		function buildControl(control) {
+			switch(control.type) {
+			    case "singleSelect":
+			    	$("<input value='' />")
+     					.attr("id", control.id)
+     					.attr("name", "")
+     					.appendTo("#inputControls"); 
+
+			        $('#'+control.id).combobox({
+					    data:control.state.options,
+					    valueField:'value',
+					    textField:'label',
+					    onLoadSuccess:function(){
+					    	$('#sendButtonBox').show();
+					    },
+					});	
+
+			        break;
+			    case n:
+			        //code block
+			        break;
+			    default:
+			        
+			}
+		}
+
+		function filterReport(id){
+			alert('Filters Coming Soon!');
+			//Get list of all input controls
+
+			//iterate through control list and build param object
+
+			//find report based on id and rerun passing param object
 		}
 
 		function refreshReport(id){
@@ -261,8 +308,11 @@
 		</div>
     </div>
 
-    <div id="dlg" class="easyui-dialog" title="Basic Dialog" data-options="iconCls:'icon-save',closed:true" style="width:400px;height:200px;padding:10px">
-        The dialog content.
+    <div id="dlg" reportId="" class="easyui-dialog" title="Report Input Controls" data-options="closed:true" style="width:400px;height:200px;padding:10px">
+    	<div id="inputControls"></div>
+    	<div id="sendButtonBox">
+    		<a id="btnFilter" href="javascript:void(0)" class="easyui-linkbutton" onclick="filterReport($('#dlg').attr('reportId'));" >SetValue</a>
+    	</div>	
     </div>
 </body>
 </html>
