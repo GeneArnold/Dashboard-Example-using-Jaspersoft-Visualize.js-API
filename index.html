@@ -56,8 +56,6 @@
 		.panel-title{
 			font-family: sans-serif;
 		}
-		
-		
 	</style>
 
 	<script type="text/javascript" src="scripts/jquery.min.js"></script>
@@ -69,12 +67,10 @@
 
 		//Wrapping and creating the portal. Setting a few parameters around how it will look
 		$(function(){
-
 			$('#pp').portal({
 				border:false,
 				fit:false
 			});
-
 		});
 
 		//Here is the JRSClient object that will be used to access repo information and to render reports
@@ -98,9 +94,10 @@
 		function init(){
 			JRSClient.resourcesSearch({
 	                // server: serverUrl,
-	                folderUri:"/public/Samples/Reports/Dashboard_Reports",
+	                folderUri:"/public/Dashboard_Reports",
 	                recursive:false,
 	                success:listRepository,
+	                types: ["reportUnit"],
 	                error:function (err) {
 	                    alert(err);
 	                }
@@ -150,7 +147,7 @@
 				p.panel({
 					title:reportName,
 					content:'<div id="report_'+btnId+'" style="padding:5px;">Loading your report...</div>',
-					height:450,
+					height:430,
 					closable:false,
 					collapsible:true,
 					noheader:false,
@@ -199,24 +196,97 @@
 
 		function buildControl(control) {
 			switch(control.type) {
-			    case "singleSelect":
-			    	$("<input value='' />")
+				case "singleValueNumber":
+					$("<div class='panel-title' style='padding-bottom:5px;padding-top:5px'/>")
+						.html(control.label)
+						.appendTo("#inputControls");
+
+					$("<input value='' />")
      					.attr("id", control.id)
      					.attr("name", "")
+     					.attr("type", "singleValueNumber")
+     					.appendTo("#inputControls");
+
+			        $('#'+control.id).numberbox({
+					    min:0,
+					});	
+
+					$('#sendButtonBox').show();
+					break;
+				case "multiSelectCheckbox":
+					$("<div class='panel-title' style='padding-bottom:5px;padding-top:5px'/>")
+						.html(control.label)
+						.appendTo("#inputControls");
+
+					$("<input value='' />")
+     					.attr("id", control.id)
+     					.attr("name", "")
+     					.attr("type", "multiSelect")
      					.appendTo("#inputControls"); 
 
 			        $('#'+control.id).combobox({
 					    data:control.state.options,
 					    valueField:'value',
 					    textField:'label',
+					    multiple:true,
 					    onLoadSuccess:function(){
 					    	$('#sendButtonBox').show();
 					    },
 					});	
-
 			        break;
-			    case n:
-			        //code block
+			    case "singleSelect":
+			    	$("<div class='panel-title' style='padding-bottom:5px;padding-top:5px'/>")
+						.html(control.label)
+						.appendTo("#inputControls");
+
+			    	$("<input value='' />")
+     					.attr("id", control.id)
+     					.attr("name", "")
+     					.attr("type", "singleSelect")
+     					.appendTo("#inputControls"); 
+
+			        $('#'+control.id).combobox({
+					    data:control.state.options,
+					    valueField:'value',
+					    textField:'label',
+					    multiple:false,
+					    onLoadSuccess:function(){
+					    	$('#sendButtonBox').show();
+					    },
+					});	
+			        break;
+			    case "multiSelect":
+			    	$("<div class='panel-title' style='padding-bottom:5px;padding-top:5px'/>")
+						.html(control.label)
+						.appendTo("#inputControls");
+
+			        $("<input value='' />")
+     					.attr("id", control.id)
+     					.attr("name", "")
+     					.attr("type", "multiSelect")
+     					.appendTo("#inputControls"); 
+
+			        $('#'+control.id).combobox({
+					    data:control.state.options,
+					    valueField:'value',
+					    textField:'label',
+					    multiple:true,
+					    onLoadSuccess:function(){
+					    	$('#sendButtonBox').show();
+					    },
+					});	
+			        break;
+			    case "singleValueText":
+			    	$("<div class='panel-title' style='padding-bottom:5px;padding-top:5px'/>")
+						.html(control.label)
+						.appendTo("#inputControls");
+
+			        $("<input value='' />")
+     					.attr("id", control.id)
+     					.attr("name", "")
+     					.attr("type", "singleValueText")
+     					.appendTo("#inputControls"); 
+					$('#sendButtonBox').show();
 			        break;
 			    default:
 			        
@@ -224,12 +294,40 @@
 		}
 
 		function filterReport(id){
-			alert('Filters Coming Soon!');
+			//alert('Filters Coming Soon!');
 			//Get list of all input controls
+			var data = {};
+			$.each($('#inputControls > :input'),function(index,value){
 
-			//iterate through control list and build param object
+				switch($('#'+value.id).attr("type")){
+					case "singleSelect":
+						data[value.id] = $('#'+value.id).combobox('getValues');
+						break;
+					case "multiSelect":
+						data[value.id] = $('#'+value.id).combobox('getValues');
+						break;
+					case "singleValueText":
+						var v = [];
+						v.push($('#'+value.id).val());
+						data[value.id] = v;
+						break;
+					case "singleValueNumber":
+						var v = [];
+						v.push($('#'+value.id).numberbox('getValue'));
+						data[value.id] = v;
+						break;
+				}
+			})
 
-			//find report based on id and rerun passing param object
+			$.each(reportsList,
+				function(index,value){
+					if(value.container() == ("#report_"+id)){
+							value
+							.params(data)
+							.run();
+					}
+				}
+			);	
 		}
 
 		function refreshReport(id){
@@ -285,6 +383,10 @@
 	        var report = new v.report({
 	        resource: uri,
 	        container: container,
+	        events: {
+				reportCompleted: function(status) {
+				}
+			},
 	        error: function(err) {
 	                alert(err.message);
 	            }
@@ -308,9 +410,9 @@
 		</div>
     </div>
 
-    <div id="dlg" reportId="" class="easyui-dialog" title="Report Input Controls" data-options="closed:true" style="width:400px;height:200px;padding:10px">
+    <div id="dlg" reportId="" class="easyui-dialog" title="Report Input Controls" data-options="closed:true,resizable:true" style="width:260px;height:350px;padding:10px">
     	<div id="inputControls"></div>
-    	<div id="sendButtonBox">
+    	<div id="sendButtonBox" style='padding-bottom:5px;padding-top:20px'>
     		<a id="btnFilter" href="javascript:void(0)" class="easyui-linkbutton" onclick="filterReport($('#dlg').attr('reportId'));" >SetValue</a>
     	</div>	
     </div>
