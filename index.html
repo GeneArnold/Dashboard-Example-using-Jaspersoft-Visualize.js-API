@@ -136,9 +136,11 @@
 
 			if (reportStatus == 'off'){
 
-				if (panelCnt.length == 0){colIndex=0};
-
-				if (colIndex > 2){colIndex=0};
+				if (panelCnt.length == 0){
+					colIndex=0
+				} else if (colIndex > 2){
+					colIndex=0
+				};
 
 				var p = $('<div />').appendTo('body');
 
@@ -167,9 +169,9 @@
 				        	var ic = JRSClient.inputControls({
 										resource: reportURI,
 										success: function(controls) {
-										controls.forEach(buildControl);
-									}
-								});
+											controls.forEach(buildControl);
+										}
+									});
 				        }
 				    }]
 				});
@@ -375,6 +377,8 @@
 			$("#"+btnId).css( "background-color", "buttonface" );
 
 			colIndex = 0;
+
+			$('#dlg').dialog('close');
 		}
 
 		var reportsList = new Array();
